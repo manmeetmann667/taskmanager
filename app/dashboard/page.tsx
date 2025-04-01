@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { getDocs } from "firebase/firestore";
 import { firestore, auth, doc, collection, setDoc } from "../lib/firebase";
 import { onAuthStateChanged } from "firebase/auth";
 
@@ -12,9 +13,10 @@ const Dashboard = () => {
   const [isModalOpen, setModalOpen] = useState(false);
   const [projectName, setProjectName] = useState("");
   const [projectDescription, setProjectDescription] = useState("");
+  const [tasks, setTasks] = useState<any[]>([]); // State to store tasks
+  const [projects, setProjects] = useState<any[]>([]); // State to store projects
 
   useEffect(() => {
-    // Check Firebase Auth for the logged-in user
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
         setUserData({ uid: user.uid, email: user.email });
@@ -27,16 +29,42 @@ const Dashboard = () => {
     return () => unsubscribe();
   }, [router]);
 
+  useEffect(() => {
+    if (userData?.uid) {
+      fetchTasks();
+      fetchProjects();
+    }
+  }, [userData]);
+
+  const fetchTasks = async () => {
+    try {
+      const taskSnapshot = await getDocs(collection(firestore, `users/${userData.uid}/tasks`));
+      const taskList = taskSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+      setTasks(taskList);
+    } catch (error) {
+      console.error("Error fetching tasks:", error);
+    }
+  };
+
+  const fetchProjects = async () => {
+    try {
+      const projectSnapshot = await getDocs(collection(firestore, `users/${userData?.uid}/projects`));
+      const projectList = projectSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+      setProjects(projectList);
+    } catch (error) {
+      console.error("Error fetching projects:", error);
+    }
+  };
+
   const handleCreateProject = async () => {
     if (!userData?.uid) return;
 
     try {
-      // Generate a new Firestore document reference with an auto-generated ID
       const projectRef = doc(collection(firestore, "AllProjects"));
       const projectId = projectRef.id;
 
       const projectData = {
-        id: projectId, // Store the ID explicitly
+        id: projectId,
         name: projectName,
         description: projectDescription,
         createdAt: new Date(),
@@ -44,11 +72,8 @@ const Dashboard = () => {
         userEmail: userData.email,
       };
 
-      // Set project under the user's projects with the same ID
       const userProjectRef = doc(firestore, `users/${userData.uid}/projects`, projectId);
       await setDoc(userProjectRef, projectData);
-
-      // Set project in the global 'AllProjects' collection with the same ID
       await setDoc(projectRef, projectData);
 
       alert("Project Created Successfully!");
@@ -66,7 +91,6 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      {/* Navigation Bar */}
       <nav className="bg-white shadow">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex justify-between h-16">
@@ -93,12 +117,49 @@ const Dashboard = () => {
         </div>
       </nav>
 
-      {/* Main Content */}
       <main className="flex-grow max-w-4xl mx-auto p-8">
-        <div className="bg-white shadow rounded-lg p-6">
+        <div className="bg-white shadow rounded-lg p-6 mb-8">
           <h1 className="text-2xl font-bold mb-4">Welcome to the Dashboard</h1>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <InfoRow label="Email" value={userData?.email || "N/A"} />
+          </div>
+        </div>
+
+        {/* Tasks and Projects Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Tasks Section */}
+          <div className="bg-white p-6 rounded-lg shadow-lg">
+            <h2 className="text-xl font-semibold mb-4">My Tasks</h2>
+            {tasks.length === 0 ? (
+              <p>No tasks assigned</p>
+            ) : (
+              <div className="space-y-4">
+                {tasks.map((task) => (
+                  <div key={task.id} className="bg-gray-100 p-4 rounded-lg shadow-md">
+                    <h3 className="text-lg font-semibold">{task.taskName}</h3>
+                    <p className="text-sm text-gray-500">Assigned on: {new Date(task.createdAt.seconds * 1000).toLocaleDateString()}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Projects Section */}
+          <div className="bg-white p-6 rounded-lg shadow-lg">
+            <h2 className="text-xl font-semibold mb-4">My Projects</h2>
+            {projects.length === 0 ? (
+              <p>No projects found</p>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {projects.map((project) => (
+                  <div key={project.id} className="bg-gray-100 p-4 rounded-lg shadow-md">
+                    <h3 className="text-lg font-semibold">{project.name}</h3>
+                    <p className="text-sm text-gray-500">{project.description}</p>
+                    <p className="text-xs text-gray-400">Created at: {new Date(project.createdAt.seconds * 1000).toLocaleDateString()}</p>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </main>
