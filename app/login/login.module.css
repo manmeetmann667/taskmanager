@@ -1,0 +1,101 @@
+/* Overall Container for the Login Page */
+.container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background: #f4f7fc; /* Light background for a corporate feel */
+    font-family: 'Roboto', sans-serif;
+  }
+  
+  /* Wrapper for the login form */
+  .formWrapper {
+    background-color: #ffffff;
+    padding: 40px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* Soft shadow for floating effect */
+    width: 100%;
+    max-width: 400px;
+    transition: box-shadow 0.3s ease-in-out;
+  }
+  
+  .formWrapper:hover {
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15); /* Enhance shadow on hover */
+  }
+  
+  /* Header Styles */
+  .header {
+    font-size: 24px;
+    font-weight: 600;
+    color: #2e3b4e; /* Darker color for text contrast */
+    margin-bottom: 20px;
+    text-align: center;
+  }
+  
+  /* Grouping for input fields */
+  .inputGroup {
+    margin-bottom: 20px;
+  }
+  
+  .inputGroup input {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 16px;
+    color: #333;
+    background-color: #fafafa; /* Slightly off-white background for inputs */
+    transition: border-color 0.3s ease-in-out;
+  }
+  
+  /* Focus state for inputs */
+  .inputGroup input:focus {
+    border-color: #007bff; /* Blue color to highlight focus */
+    outline: none;
+  }
+  
+  /* Button Styles */
+  .button {
+    width: 100%;
+    padding: 12px 16px;
+    background-color: #007bff; /* Corporate blue */
+    color: #fff;
+    font-size: 16px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s ease-in-out;
+  }
+  
+  .button:hover {
+    background-color: #0056b3; /* Darker blue on hover */
+  }
+  
+  /* Error Message */
+  .error {
+    color: #d9534f; /* Red color for error */
+    font-size: 14px;
+    text-align: center;
+    margin-top: 10px;
+    padding: 8px;
+    border: 1px solid #d9534f;
+    background-color: rgba(255, 0, 0, 0.1);
+    border-radius: 4px;
+  }
+  
+  /* Responsive Design */
+  @media (max-width: 768px) {
+    .formWrapper {
+      padding: 30px;
+    }
+  
+    .header {
+      font-size: 22px;
+    }
+  
+    .inputGroup input, .button {
+      font-size: 14px;
+      padding: 10px 12px;
+    }
+  }
+  
