@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { auth, firestore } from "../lib/firebase";
-import { collection, getDocs, addDoc, doc, updateDoc } from "firebase/firestore";
+import { collection, getDocs, addDoc, doc, updateDoc,setDoc} from "firebase/firestore";
 import Link from "next/link";
 
 const AllProjects = () => {
@@ -72,11 +72,11 @@ const AllProjects = () => {
   };
 
   const handleAddTask = async () => {
-    if (!taskName || !selectedUserId) {
+    if (!taskName || !selectedUserId || !selectedProject) {
       setTaskStatus("Please fill in all fields.");
       return;
     }
-
+  
     try {
       // Create the task for the selected user
       const taskRef = await addDoc(collection(firestore, `users/${selectedUserId}/tasks`), {
@@ -84,21 +84,35 @@ const AllProjects = () => {
         projectId: selectedProject.id,
         createdAt: new Date(),
       });
-
-      // Add the project reference to the selected user's project collection
+  
+      // Reference to the selected user's project document
       const userProjectRef = doc(firestore, `users/${selectedUserId}/projects`, selectedProject.id);
+  
+      // Update or set project reference in the user's collection
       await updateDoc(userProjectRef, {
-        tasks: [...selectedProject.tasks || [], taskRef.id],
+        projectId: selectedProject.id,
+        projectName: selectedProject.name,
+        createdAt: selectedProject.createdAt,
+        tasks: [...(selectedProject.tasks || []), taskRef.id], // Append the new task ID
+      }).catch(async (error) => {
+        // If the update fails (because the document doesn't exist), create it
+        await setDoc(userProjectRef, {
+          projectId: selectedProject.id,
+          projectName: selectedProject.name,
+          createdAt: selectedProject.createdAt,
+          tasks: [taskRef.id], // Start a new task array
+        });
       });
-
-      setTaskStatus("Task added successfully!");
-      setTaskName(""); // Clear the task input field
-      setSelectedUserId(""); // Clear the selected user
+  
+      setTaskStatus("Task added successfully and project reference updated!");
+      setTaskName("");
+      setSelectedUserId("");
     } catch (error) {
       console.error("Error adding task:", error);
       setTaskStatus("Error adding task. Please try again.");
     }
   };
+  
 
   return (
     <div className="min-h-screen bg-gray-100 p-6">

@@ -49,7 +49,16 @@ const Dashboard = () => {
   const fetchProjects = async () => {
     try {
       const projectSnapshot = await getDocs(collection(firestore, `users/${userData?.uid}/projects`));
-      const projectList = projectSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+      const projectList = projectSnapshot.docs.map((doc) => {
+        const data = doc.data();
+        return {
+          id: data.id || data.projectId,
+          name: data.name || data.projectName,
+          description: data.description || "No description available",
+          createdAt: data.createdAt?.seconds ? new Date(data.createdAt.seconds * 1000).toLocaleDateString() : "Unknown",
+          tasks: data.tasks || [],
+        };
+      });
       setProjects(projectList);
     } catch (error) {
       console.error("Error fetching projects:", error);
